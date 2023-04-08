@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+# Непосредственно контейнер с БД
+  postgresDB:
+    hostname: postgresdb # Домен, по которому можно будет обратиться к этому сервису из pgadmin при создании сервера
+    container_name: postgres_db_foreign_lab # Просто пометил название контейнера, чтобы видеть его в списке и понимать, что это именно он
+    image: postgres:14.1-alpine # Это говоорит о том, что мы берем образ постгрес, установленный на linux alpine (самый легкий дистрибутив)
+    restart: always # Говорим, что если БД ляжет, то мы ее всегда поднимаем
+    environment: # Задаем, какие креды должен использовать образ БД при создании первого рут пользователя
+      POSTGRES_USER: $DB_USERNAME
+      POSTGRES_PASSWORD: $DB_PASSWORD
+    ports:
+      - '8090:5432' # По умолчанию postgres работает на порту 5432, так как мы запускаем его в контейнере, мы говорим, что контейнер будет слушать порт 8090 и перенаправлять на внутренний порт постгреса
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data # Говорим о том, что данные постгреса должны четко синхронизироваться с данными в папке ./postgres_data (чтобы не потерять данные при перезапуске контейнера)
+
+  pgadmin:
+    container_name: pgadmin_db_foreign_lab # Просто пометил название контейнера, чтобы видеть его в списке и понимать, что это именно он
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: $PGADMIN_DEFAULT_EMAIL
+      PGADMIN_DEFAULT_PASSWORD: $PGADMIN_DEFAULT_PASSWORD
+    ports:
+      - "8091:80"
+
+# Еще один сервис для управления БД
+  adminer:
+    container_name: adminer_db_foreign_lab
+    image: adminer
+    restart: always
+    ports:
+      - "8092:8080"
